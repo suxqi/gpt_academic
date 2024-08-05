@@ -9,8 +9,9 @@ WORKDIR /gpt
 # 装载项目文件
 COPY . .
 
-# 安装依赖
-RUN pip3 install -r requirements.txt
+# 升级pip到最新版本并安装依赖
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
 
 # 安装语音插件的额外依赖
 RUN pip3 install aliyun-python-sdk-core==2.13.3 pyOpenSSL webrtcvad scipy git+https://github.com/aliyun/alibabacloud-nls-python-sdk.git
