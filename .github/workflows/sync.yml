@@ -1,4 +1,4 @@
-name: Upstream Sync
+name: Upstream Sync and Documentation Update
 
 permissions:
   contents: write
@@ -44,3 +44,28 @@ jobs:
           labels: '🚨 Sync Fail'
           body: |
             由于上游仓库的 workflow 文件变更，导致 GitHub 自动暂停了本次自动更新，你需要手动 Sync Fork 一次。
+
+  update_docs:
+    name: Auto Update and Sync Docs
+    needs: sync_latest_from_upstream
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out current branch
+        uses: actions/checkout@v4
+
+      - name: Download, unzip, and process files
+        run: |
+          curl -L https://codeload.github.com/binary-husky/gpt_academic/zip/refs/heads/frontier -o gpt_academic.zip
+          unzip -oq gpt_academic.zip -d gpt_academic && rm gpt_academic.zip
+          mkdir -p ./docs
+          mv gpt_academic/gpt_academic-frontier/docs/GithubAction* ./docs/
+          find ./docs -name '*+*' -exec bash -c 'mv "$0" "${0//+/\.}"' {} \;
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add ./docs
+          git diff-index --quiet HEAD || git commit -m "Merge branch 'frontier' of https://github.com/binary-husky/gpt_academic"
+          git push
